@@ -1,0 +1,8 @@
+services:
+  youtube-notifier:
+    build: .
+    environment:
+      - YOUTUBE_CHANNEL_ID=YOUR_CHANNEL_ID
+      - WEBHOOK_URL=https://notify.lunasea.app/v1/custom/device/dWFR0uxJKUElvsW_u981XT:APA91bFRz5Jb9QE5TkXqFa8RkKDOKFIQFkjdjXCRFCs9SUhi7kTDQA7EzqTsALu09H9PFz5L7l4YEpijwcc3eXqrmmrJjYwsGF2dyVjFwlFE3mBLNk1JH7Xt2hpyT01Mu1PU80AecvSK
+      - CHECK_INTERVAL=5
+      - NOTIFY_TITLE="Zvezde Granda - Cela Emisija"
