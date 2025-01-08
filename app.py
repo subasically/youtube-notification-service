@@ -4,13 +4,17 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import json
+from match import check_titles
+from logger import get_logger
+
+log = get_logger()
 
 # Environment variables
-YOUTUBE_CHANNEL_ID = os.getenv("YOUTUBE_CHANNEL_ID")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+YOUTUBE_CHANNEL_ID = os.getenv("YOUTUBE_CHANNEL_ID", "UChz9nfVNmUiZryQtekbzS5g")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://notify.lunasea.app/v1/custom/device/dWFR0uxJKUElvsW_u981XT:APA91bFRz5Jb9QE5TkXqFa8RkKDOKFIQFkjdjXCRFCs9SUhi7kTDQA7EzqTsALu09H9PFz5L7l4YEpijwcc3eXqrmmrJjYwsGF2dyVjFwlFE3mBLNk1JH7Xt2hpyT01Mu1PU80AecvSK")
 CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", 5))  # Minutes
-NOTIFY_TITLE = os.getenv(
-    "NOTIFY_TITLE", "Zvezde Granda - Cela Emisija"
+VIDEO_TITLE = os.getenv(
+    "VIDEO_TITLE", "Zvezde Granda - Cela Emisija"
 )  # Default title
 
 # Construct the feed URL using the YouTube channel ID
@@ -27,6 +31,7 @@ def is_video_today(published_date):
 
 # Function to send webhook notification
 def send_webhook_notification(title, link):
+    log.info("Sending webhook notification...")
     # Construct the payload for the webhook
     payload = json.dumps(
         {
@@ -41,7 +46,7 @@ def send_webhook_notification(title, link):
     # Send the POST request to the webhook URL
     response = requests.post(WEBHOOK_URL, headers=headers, data=payload)
 
-    print(f"Webhook sent. Response: {response.text}")
+    log.info(f"Webhook sent. Response: {response.text}")
 
 
 # Function to fetch and parse YouTube feed
@@ -54,16 +59,21 @@ def check_youtube_feed():
         link = entry.link["href"].split("/")[-1]  # Extract the video ID from the link
         published_date = datetime.strptime(entry.published.text, "%Y-%m-%dT%H:%M:%S%z")
 
-        # Check if title matches and the video was published today
-        if title == NOTIFY_TITLE and is_video_today(published_date):
+        # Use check_titles to validate the title
+        log.info(f"Checking title: {title}")
+        results = check_titles([title])
+        if any(r.startswith("✅") for r in results) and is_video_today(published_date):
+            log.info(f"New video found: {title}")
             send_webhook_notification(title, link)
 
 
 # Main loop
 def main():
     while True:
+        log.info(f"Checking {VIDEO_TITLE} for new videos in {YOUTUBE_FEED_URL}")
         check_youtube_feed()
-        time.sleep(CHECK_INTERVAL * 60)  # Sleep for the specified interval
+        log.info(f"😴 Sleeping for {CHECK_INTERVAL} minutes...")
+        time.sleep(CHECK_INTERVAL * 60)
 
 
 if __name__ == "__main__":
