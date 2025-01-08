@@ -6,16 +6,27 @@ from datetime import datetime
 import json
 from match import check_titles
 from logger import get_logger
+import sys
 
 log = get_logger()
 
 # Environment variables
-YOUTUBE_CHANNEL_ID = os.getenv("YOUTUBE_CHANNEL_ID", "UChz9nfVNmUiZryQtekbzS5g")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://notify.lunasea.app/v1/custom/device/dWFR0uxJKUElvsW_u981XT:APA91bFRz5Jb9QE5TkXqFa8RkKDOKFIQFkjdjXCRFCs9SUhi7kTDQA7EzqTsALu09H9PFz5L7l4YEpijwcc3eXqrmmrJjYwsGF2dyVjFwlFE3mBLNk1JH7Xt2hpyT01Mu1PU80AecvSK")
+YOUTUBE_CHANNEL_ID = os.getenv("YOUTUBE_CHANNEL_ID")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", 5))  # Minutes
-VIDEO_TITLE = os.getenv(
-    "VIDEO_TITLE", "Zvezde Granda - Cela Emisija"
-)  # Default title
+VIDEO_TITLE = os.getenv("VIDEO_TITLE")  # Default title
+
+if not YOUTUBE_CHANNEL_ID:
+    log.error("Missing YOUTUBE_CHANNEL_ID environment variable.")
+    sys.exit(1)
+
+if not WEBHOOK_URL:
+    log.error("Missing WEBHOOK_URL environment variable.")
+    sys.exit(1)
+
+if not VIDEO_TITLE:
+    log.warning("Missing VIDEO_TITLE environment variable.")
+    sys.exit(1)
 
 # Construct the feed URL using the YouTube channel ID
 YOUTUBE_FEED_URL = (
@@ -80,7 +91,7 @@ def check_youtube_feed():
 def main():
     # Send a startup notification
     log.info("Service starting up...")
-    send_webhook_notification("Youtube Notification Service", "startup notification", None)
+    send_webhook_notification("Youtube Notification Service", "Startup Notification 👍", None)
 
     while True:
         log.info(f"Checking {VIDEO_TITLE} for new videos in {YOUTUBE_FEED_URL}")
