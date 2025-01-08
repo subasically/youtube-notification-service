@@ -30,16 +30,25 @@ def is_video_today(published_date):
 
 
 # Function to send webhook notification
-def send_webhook_notification(title, link):
+def send_webhook_notification(title, message, link):
     log.info("Sending webhook notification...")
     # Construct the payload for the webhook
-    payload = json.dumps(
-        {
-            "title": "New Video!",
-            "body": f"{title} uploaded a new episode.",
-            "image": f"https://i4.ytimg.com/vi/{link}/hqdefault.jpg",  # YouTube thumbnail URL
-        }
-    )
+    if link:
+        payload = json.dumps(
+            {
+                "title": f"{title}",
+                "body": f"{message}",
+                "image": f"https://i4.ytimg.com/vi/{link}/hqdefault.jpg",  # YouTube thumbnail URL
+            }
+        )
+    else:
+        payload = json.dumps(
+            {
+                "title": f"{title}",
+                "body": f"{message}",
+                "image": "https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
+            }
+        )
 
     headers = {"Content-Type": "application/json"}
 
@@ -64,11 +73,15 @@ def check_youtube_feed():
         results = check_titles([title])
         if any(r.startswith("✅") for r in results) and is_video_today(published_date):
             log.info(f"New video found: {title}")
-            send_webhook_notification(title, link)
+            send_webhook_notification(title, f"New video uploaded 😃😄‼️", link)
 
 
 # Main loop
 def main():
+    # Send a startup notification
+    log.info("Service starting up...")
+    send_webhook_notification("Youtube Notification Service", "startup notification", None)
+
     while True:
         log.info(f"Checking {VIDEO_TITLE} for new videos in {YOUTUBE_FEED_URL}")
         check_youtube_feed()
