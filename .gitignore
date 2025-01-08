@@ -1,0 +1,23 @@
+# Node modules
+node_modules/
+
+# Logs
+npm-debug.log
+yarn-error.log
+*.log
+
+# Environment files
+.env
+.env.*
+
+# Build
+dist/
+coverage/
+
+# Local development
+__pycache__/
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+docker-compose.local.yml
