@@ -1,5 +1,4 @@
 yt-dlp
-ffmpeg
 beautifulsoup4
 requests
 lxml
