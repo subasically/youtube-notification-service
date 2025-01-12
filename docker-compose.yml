@@ -1,9 +1,14 @@
 services:
-  youtube-notifier:
+  youtube-notification-service:
     build: .
-    container_name: youtube-notifier
+    container_name: youtube-notification-service
     environment:
-      - CHECK_INTERVAL=15
-      - VIDEO_TITLE=
       - YOUTUBE_CHANNEL_ID=
       - WEBHOOK_URL=
+      - CHECK_INTERVAL=15
+      - NOTIFY_TITLE=""
+    volumes:
+      - notification-history:/usr/src/app/notification-history.json
+
+volumes:
+  notification-history:
