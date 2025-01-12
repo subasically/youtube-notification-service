@@ -1,12 +1,17 @@
 import os
 import time
 import requests
+import yt_dlp
 from bs4 import BeautifulSoup
 from datetime import datetime
 import json
 from match import check_titles
 from logger import get_logger
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 log = get_logger()
 
@@ -15,6 +20,7 @@ YOUTUBE_CHANNEL_ID = os.getenv("YOUTUBE_CHANNEL_ID")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", 5))  # Minutes
 VIDEO_TITLE = os.getenv("VIDEO_TITLE")  # Default title
+DOWNLOAD_VIDEO = os.getenv("DOWNLOAD_VIDEO", False)
 
 if not YOUTUBE_CHANNEL_ID:
     log.error("Missing YOUTUBE_CHANNEL_ID environment variable.")
@@ -79,6 +85,18 @@ def send_webhook_notification(title, message, link):
     log.info(f"Webhook sent. Response: {response.text}")
 
 
+def download_video(video_id, video_title):
+    ydl_opts = {
+        "outtmpl": "/downloads/%(uploader)s/%(title)s.%(ext)s",
+        "format": "best",
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        log.info(f"Downloading video: {video_title}")
+        ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
+        log.info(f"Downloaded video: {video_title}")
+
+
 # Function to fetch and parse YouTube feed
 def check_youtube_feed():
     response = requests.get(YOUTUBE_FEED_URL)
@@ -86,25 +104,33 @@ def check_youtube_feed():
 
     for entry in soup.find_all("entry"):
         title = entry.title.text
-        link = entry.link["href"].split("/")[-1]  # Extract the video ID from the link
-        published_date = datetime.strptime(entry.published.text, "%Y-%m-%dT%H:%M:%S%z")
+        video_id = entry.link["href"].split("/")[
+            -1
+        ]  # Extract the video ID from the link
+        # published_date = datetime.strptime(entry.published.text, "%Y-%m-%dT%H:%M:%S%z")
 
         # Check if the video ID is already in the notification history
-        if link in notification_history:
+        if video_id in notification_history:
             log.info(f"Video {title} already notified.")
             continue
 
         # Use check_titles to validate the title
         log.info(f"Checking title: {title}")
         results = check_titles([title])
-        if any(r.startswith("✅") for r in results) and is_video_today(published_date):
+        if any(r.startswith("✅") for r in results):
             log.info(f"New video found: {title}")
-            send_webhook_notification(title, f"New video uploaded 😃😄‼️", link)
+            send_webhook_notification(title, f"New video uploaded 😃😄‼️", video_id)
             # Update notification history
-            notification_history.append(link)
+            notification_history.append(video_id)
             with open(NOTIFICATION_HISTORY_FILE, "w") as file:
                 json.dump(notification_history, file)
             log.info(f"Updated notification history: {notification_history}")
+
+            # Download the video
+            if DOWNLOAD_VIDEO:
+                download_video(video_id, title)
+            else:
+                log.info("Skipping video download")
 
 
 # Main loop

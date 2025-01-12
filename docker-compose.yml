@@ -7,6 +7,7 @@ services:
       - WEBHOOK_URL=
       - CHECK_INTERVAL=15
       - NOTIFY_TITLE=""
+      - DOWNLOAD_VIDEO=false
     volumes:
       - notification-history:/usr/src/app/notification-history.json
 
