@@ -7,7 +7,6 @@ yarn-error.log
 *.log
 
 # Environment files
-.env
 .env.*
 
 # Build
