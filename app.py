@@ -89,7 +89,7 @@ def send_webhook_notification(title, message, link):
 def download_video(video_id, video_title):
     ydl_opts = {
         "outtmpl": "/usr/src/app/downloads/%(title)s.%(ext)s",  # Update the path here
-        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+        "format": "bestvideo[ext=mp4]",
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
