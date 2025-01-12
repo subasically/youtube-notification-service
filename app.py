@@ -8,10 +8,6 @@ import json
 from match import check_titles
 from logger import get_logger
 import sys
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
 
 log = get_logger()
 
