@@ -33,6 +33,16 @@ YOUTUBE_FEED_URL = (
     f"https://www.youtube.com/feeds/videos.xml?channel_id={YOUTUBE_CHANNEL_ID}"
 )
 
+# Load notification history
+NOTIFICATION_HISTORY_FILE = "notification-history.json"
+if os.path.exists(NOTIFICATION_HISTORY_FILE):
+    with open(NOTIFICATION_HISTORY_FILE, "r") as file:
+        notification_history = json.load(file)
+else:
+    notification_history = []
+
+log.info(f"Loaded notification history: {notification_history}")
+
 
 # Function to check if a video is published today
 def is_video_today(published_date):
@@ -57,7 +67,7 @@ def send_webhook_notification(title, message, link):
             {
                 "title": f"{title}",
                 "body": f"{message}",
-                "image": "https://cdn-icons-png.flaticon.com/512/1384/1384060.png"
+                "image": "https://cdn-icons-png.flaticon.com/512/1384/1384060.png",
             }
         )
 
@@ -79,19 +89,31 @@ def check_youtube_feed():
         link = entry.link["href"].split("/")[-1]  # Extract the video ID from the link
         published_date = datetime.strptime(entry.published.text, "%Y-%m-%dT%H:%M:%S%z")
 
+        # Check if the video ID is already in the notification history
+        if link in notification_history:
+            log.info(f"Video {title} already notified.")
+            continue
+
         # Use check_titles to validate the title
         log.info(f"Checking title: {title}")
         results = check_titles([title])
         if any(r.startswith("✅") for r in results) and is_video_today(published_date):
             log.info(f"New video found: {title}")
             send_webhook_notification(title, f"New video uploaded 😃😄‼️", link)
+            # Update notification history
+            notification_history.append(link)
+            with open(NOTIFICATION_HISTORY_FILE, "w") as file:
+                json.dump(notification_history, file)
+            log.info(f"Updated notification history: {notification_history}")
 
 
 # Main loop
 def main():
     # Send a startup notification
     log.info("Service starting up...")
-    send_webhook_notification("Youtube Notification Service", "Startup Notification 👍", None)
+    send_webhook_notification(
+        "Youtube Notification Service", "Startup Notification 👍", None
+    )
 
     while True:
         log.info(f"Checking {VIDEO_TITLE} for new videos in {YOUTUBE_FEED_URL}")
