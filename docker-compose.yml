@@ -10,6 +10,7 @@ services:
       - DOWNLOAD_VIDEO=false
     volumes:
       - notification-history:/usr/src/app/notification-history.json
+      - /local/dir/here:/usr/src/app/downloads
 
 volumes:
   notification-history:
