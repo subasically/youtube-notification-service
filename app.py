@@ -39,7 +39,12 @@ YOUTUBE_FEED_URL = (
 NOTIFICATION_HISTORY_FILE = "notification-history.json"
 if os.path.exists(NOTIFICATION_HISTORY_FILE):
     with open(NOTIFICATION_HISTORY_FILE, "r") as file:
-        notification_history = json.load(file)
+        try:
+            notification_history = json.load(file)
+            if not isinstance(notification_history, list):
+                notification_history = []
+        except json.JSONDecodeError:
+            notification_history = []
 else:
     notification_history = []
 
