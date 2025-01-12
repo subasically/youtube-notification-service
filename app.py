@@ -105,13 +105,12 @@ def check_youtube_feed():
 
     for entry in soup.find_all("entry"):
         title = entry.title.text
-        video_id = entry.link["href"].split("/")[
-            -1
-        ]  # Extract the video ID from the link
+        videoId = entry.videoId.text
+        link = entry.link["href"].split("/")[-1]  # Extract the video ID from the link
         # published_date = datetime.strptime(entry.published.text, "%Y-%m-%dT%H:%M:%S%z")
 
         # Check if the video ID is already in the notification history
-        if video_id in notification_history:
+        if videoId in notification_history:
             log.info(f"Video {title} already notified.")
             continue
 
@@ -120,16 +119,16 @@ def check_youtube_feed():
         results = check_titles([title])
         if any(r.startswith("✅") for r in results):
             log.info(f"New video found: {title}")
-            send_webhook_notification(title, f"New video uploaded 😃😄‼️", video_id)
+            send_webhook_notification(title, f"New video uploaded 😃😄‼️", link)
             # Update notification history
-            notification_history.append(video_id)
+            notification_history.append(videoId)
             with open(NOTIFICATION_HISTORY_FILE, "w") as file:
                 json.dump(notification_history, file)
             log.info(f"Updated notification history: {notification_history}")
 
             # Download the video
             if DOWNLOAD_VIDEO:
-                download_video(video_id, title)
+                download_video(videoId, title)
             else:
                 log.info("Skipping video download")
 
