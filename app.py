@@ -93,8 +93,11 @@ def download_video(video_id, video_title):
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        log.info(f"Downloading video: {video_title}")
+        log.info(f"Downloading video: {video_title} with ID: {video_id}")
         ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
+        send_webhook_notification(
+            video_title, "Video downloaded successfully 🎉🎉", video_id
+        )
         log.info(f"Downloaded video: {video_title}")
 
 
