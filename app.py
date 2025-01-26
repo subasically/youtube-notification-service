@@ -118,10 +118,9 @@ def check_youtube_feed():
     soup = BeautifulSoup(response.text, "xml")
 
     for entry in soup.find_all("entry"):
-        title = entry.title.text
+        title = entry.title.text.rstrip(".")
         videoId = entry.videoId.text
         link = entry.link["href"].split("/")[-1]  # Extract the video ID from the link
-        # published_date = datetime.strptime(entry.published.text, "%Y-%m-%dT%H:%M:%S%z")
 
         # Check if the video ID is already in the notification history
         if videoId in notification_history:
