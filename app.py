@@ -30,6 +30,7 @@ if not VIDEO_TITLE:
     log.warning("Missing VIDEO_TITLE environment variable.")
     sys.exit(1)
 
+
 # Construct the feed URL using the YouTube channel ID
 YOUTUBE_FEED_URL = (
     f"https://www.youtube.com/feeds/videos.xml?channel_id={YOUTUBE_CHANNEL_ID}"
@@ -89,16 +90,26 @@ def send_webhook_notification(title, message, link):
 def download_video(video_id, video_title):
     ydl_opts = {
         "outtmpl": "/usr/src/app/downloads/%(title)s.%(ext)s",  # Update the path here
-        "format": "bestvideo[ext=mp4]",
+        "format": "bv*[ext=mp4][vcodec^=avc1]+ba[ext=m4a][acodec^=mp4a]/b[ext=mp4]",
+        "merge_output_format": "mp4",  # Ensure video and audio are merged into an MP4
+        "postprocessors": [
+            {
+                "key": "FFmpegMetadata",  # Embed metadata
+            }
+        ],
     }
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        log.info(f"Downloading video: {video_title} with ID: {video_id}")
-        ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
-        send_webhook_notification(
-            video_title, "Video downloaded successfully 🎉🎉", video_id
-        )
-        log.info(f"Downloaded video: {video_title}")
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            log.info(f"Downloading video: {video_title} with ID: {video_id}")
+            ydl.download([f"https://www.youtube.com/watch?v={video_id}"])
+            send_webhook_notification(
+                video_title, "Video downloaded successfully 🎉🎉", video_id
+            )
+            log.info(f"Downloaded video: {video_title}")
+    except Exception as e:
+        log.error(f"Failed to download video {video_title}: {e}")
+
 
 
 # Function to fetch and parse YouTube feed
